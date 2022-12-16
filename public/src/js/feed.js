@@ -4,6 +4,18 @@ var closeCreatePostModalButton = document.querySelector('#close-create-post-moda
 
 function openCreatePostModal() {
   createPostArea.style.display = 'block';
+  if(eventPrompt){
+    eventPrompt.prompt();
+    eventPrompt.userChoice.then(function(choiceResult){
+      console.log(choiceResult.outcome)
+      if(choiceResult.outcome === 'dismissed'){
+        console.log('user canceled installation')
+      }else{
+        console.log('user add application to home screen')
+      }
+      eventPrompt = null;
+    })
+  }
 }
 
 function closeCreatePostModal() {
