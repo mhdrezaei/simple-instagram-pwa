@@ -1,23 +1,23 @@
-var CACHE_STATIC_NAME = 'static-v3'
-var CACHE_DYNAMIC_NAME = CACHE_DYNAMIC_NAME
+var CACHE_STATIC_NAME = "static-v11";
+var CACHE_DYNAMIC_NAME = "dynamic";
+var CACHE_USER_ENTERED_NAME = "entered-user";
 
 self.addEventListener("install", function (event) {
   console.log("[service workwer] is installing... ", event);
   event.waitUntil(
     caches.open(CACHE_STATIC_NAME).then(function (cache) {
-      console.log("start static chaches");
+      console.log("start static chaches...");
       cache.addAll([
         "/",
-        "/help",
-        "/help/index.html",
         "/index.html",
+        "/offline.html",
         "/src/js/app.js",
         "/src/js/feed.js",
         "/src/js/material.min.js",
         "/src/css/app.css",
-        "/src/css/feed",
+        "/src/css/feed.css",
         "https://fonts.googleapis.com/css?family=Roboto:400,700",
-        "https://fonts.googleapis.com/icon?family=Material+Icons"
+        "https://fonts.googleapis.com/icon?family=Material+Icons",
       ]);
     })
   );
@@ -25,21 +25,26 @@ self.addEventListener("install", function (event) {
 self.addEventListener("activate", function (event) {
   console.log("[service workwer] is activating... ", event);
   event.waitUntil(
-    caches.keys().then(
-      function(keyList){
-        return Promise.all(keyList.map(function(key){
-          if(key !== CACHE_STATIC_NAME && key !== CACHE_DYNAMIC_NAME  ){
-            console.log('[Service Worker] delete cache' , key)
-             return caches.delete(key)
+    caches.keys().then(function (keyList) {
+      return Promise.all(
+        keyList.map(function (key) {
+          if (
+            key !== CACHE_STATIC_NAME &&
+            key !== CACHE_USER_ENTERED_NAME &&
+            key !== CACHE_DYNAMIC_NAME
+          ) {
+            console.log("[Service Worker] delete cache", key);
+            return caches.delete(key);
           }
-        }))
-      }
-    )
-  )
+        })
+      );
+    })
+  );
   return self.clients.claim();
 });
-
+// fetch cashe
 self.addEventListener("fetch", function (event) {
+  console.log("fetch");
   event.respondWith(
     caches.match(event.request).then(function (response) {
       if (response) {
@@ -51,7 +56,11 @@ self.addEventListener("fetch", function (event) {
                 return res
             })
         }).catch(function(err){
-
+         return caches.open(CACHE_STATIC_NAME).then(
+            function(cache){
+             return cache.match("/offline.html")
+            }
+          )
         })
       }
     })

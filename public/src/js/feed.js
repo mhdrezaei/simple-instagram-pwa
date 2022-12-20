@@ -1,7 +1,7 @@
 var shareImageButton = document.querySelector('#share-image-button');
 var createPostArea = document.querySelector('#create-post');
 var closeCreatePostModalButton = document.querySelector('#close-create-post-modal-btn');
-
+var sharedMomentsArea = document.querySelector('#shared-moments');
 function openCreatePostModal() {
   createPostArea.style.display = 'block';
   if(eventPrompt){
@@ -25,6 +25,18 @@ function closeCreatePostModal() {
 shareImageButton.addEventListener('click', openCreatePostModal);
 
 closeCreatePostModalButton.addEventListener('click', closeCreatePostModal);
+
+function onSaveButtonClicked(){
+
+  if('caches' in window){
+    caches.open('entered-user').then(function(cache){
+      cache.add('https://httpbin.org/get')
+      cache.add('/src/images/sf-boat.jpg')
+    })
+  }
+
+}
+
 
 function createCard() {
   var cardWrapper = document.createElement('div');
