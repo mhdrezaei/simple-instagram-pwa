@@ -1,7 +1,25 @@
-var CACHE_STATIC_NAME = "static-v11";
+importScripts("/src/js/idb.js");
+var CACHE_STATIC_NAME = "static-v18";
 var CACHE_DYNAMIC_NAME = "dynamic";
 var CACHE_USER_ENTERED_NAME = "entered-user";
-
+var STATIC_FILES = [
+  "/",
+  "/index.html",
+  "/offline.html",
+  "/src/js/app.js",
+  "/src/js/idb.js",
+  "/src/js/feed.js",
+  "/src/js/material.min.js",
+  "/src/css/app.css",
+  "/src/css/feed.css",
+  "https://fonts.googleapis.com/css?family=Roboto:400,700",
+  "https://fonts.googleapis.com/icon?family=Material+Icons",
+];
+var dbPromise = idb.open("posts-store", 1, function (db) {
+  if (!db.objectStoreNames.contains("posts")) {
+    db.createObjectStore("posts", { keyPath: '_id' });
+  }
+});
 self.addEventListener("install", function (event) {
   console.log("[service workwer] is installing... ", event);
   event.waitUntil(
@@ -12,6 +30,7 @@ self.addEventListener("install", function (event) {
         "/index.html",
         "/offline.html",
         "/src/js/app.js",
+        "/src/js/idb.js",
         "/src/js/feed.js",
         "/src/js/material.min.js",
         "/src/css/app.css",
@@ -22,6 +41,14 @@ self.addEventListener("install", function (event) {
     })
   );
 });
+function isInArray(string, array) {
+  for (i = 0; i > array.length; i++) {
+    if (string === array[i]) {
+      return true;
+    }
+  }
+  return false;
+}
 self.addEventListener("activate", function (event) {
   console.log("[service workwer] is activating... ", event);
   event.waitUntil(
@@ -44,25 +71,74 @@ self.addEventListener("activate", function (event) {
 });
 // fetch cashe
 self.addEventListener("fetch", function (event) {
-  console.log("fetch");
-  event.respondWith(
-    caches.match(event.request).then(function (response) {
+  var url = "http://localhost:5000/api/v1/alljobs";
+  if (event.request.url.indexOf(url) > -1) {
+    event.respondWith(
+      fetch(event.request)
+    .then(function (response) {
+        var cloneResponse = response.clone();
+        cloneResponse.json().then(function (data) {
+          for (var key in data.data) {
+            dbPromise.then(function (db) {
+              var tx = db.transaction("posts", "readwrite");
+              var store = tx.objectStore("posts");
+              store.put(data.data[key]);
+              return tx.complete;
+            });
+          }
+        });
+        return response;
+      })
+    );
+  } else if (isInArray(event.request.url, STATIC_FILES)) {
+    event.respondWith(caches.match(event.request));
+  } else {
+    event.respondWith(caches.match(event.request).then(function (response) {
       if (response) {
         return response;
-      } else {
-        return fetch(event.request).then(function(res){
-            return caches.open(CACHE_DYNAMIC_NAME).then(function(cache){
-                cache.put(event.request.url , res.clone())
-                return res
-            })
-        }).catch(function(err){
-         return caches.open(CACHE_STATIC_NAME).then(
-            function(cache){
-             return cache.match("/offline.html")
-            }
-          )
-        })
+      
       }
-    })
-  );
-});
+     else {
+        return fetch(event.request)
+          .then(function (res) {
+            return caches.open(CACHE_DYNAMIC_NAME).then(function (cache) {
+              cache.put(event.request.url, res.clone());
+              return res;
+            });
+          })
+          .catch(function (err) {
+            return caches.open(CACHE_STATIC_NAME).then(function (cache) {
+              return cache.match("/offline.html");
+            });
+          });
+      }
+    }))
+  }
+})
+  
+
+
+// fetch cashe
+// self.addEventListener("fetch", function (event) {
+//   console.log("fetch");
+//   event.respondWith(
+//     caches.match(event.request).then(function (response) {
+//       if (response) {
+//         return response;
+//       } else {
+//         return fetch(event.request)
+//           .then(function (res) {
+//             return caches.open(CACHE_DYNAMIC_NAME).then(function (cache) {
+//               cache.put(event.request.url, res.clone());
+//               return res;
+//             });
+//           })
+//           .catch(function (err) {
+//             return caches.open(CACHE_STATIC_NAME).then(function (cache) {
+//               return cache.match("/offline.html");
+//             });
+//           });
+//       }
+//     })
+//   );
+// });

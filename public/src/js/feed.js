@@ -30,31 +30,31 @@ function onSaveButtonClicked(){
 
   if('caches' in window){
     caches.open('entered-user').then(function(cache){
-      cache.add('https://httpbin.org/get')
-      cache.add('/src/images/sf-boat.jpg')
+      cache.add('http://localhost:5000/api/v1/alljobs')
     })
   }
 
 }
 
 
-function createCard() {
+function createCard(data) {
+  console.log(data)
   var cardWrapper = document.createElement('div');
   cardWrapper.className = 'shared-moment-card mdl-card mdl-shadow--2dp';
   var cardTitle = document.createElement('div');
   cardTitle.className = 'mdl-card__title';
-  cardTitle.style.backgroundImage = 'url("/src/images/sf-boat.jpg")';
+  cardTitle.style.backgroundImage = 'url('+ data.image +')';
   cardTitle.style.backgroundSize = 'cover';
   cardTitle.style.height = '180px';
   cardWrapper.appendChild(cardTitle);
   var cardTitleTextElement = document.createElement('h2');
   cardTitleTextElement.style.color = 'white';
   cardTitleTextElement.className = 'mdl-card__title-text';
-  cardTitleTextElement.textContent = 'San Francisco Trip';
+  cardTitleTextElement.textContent = data.title;
   cardTitle.appendChild(cardTitleTextElement);
   var cardSupportingText = document.createElement('div');
   cardSupportingText.className = 'mdl-card__supporting-text';
-  cardSupportingText.textContent = 'In San Francisco';
+  cardSupportingText.textContent = data.title;
   cardSupportingText.style.textAlign = 'center';
   var cardSaveButton = document.createElement('button');
   cardSaveButton.textContent = 'Save';
@@ -66,10 +66,13 @@ function createCard() {
 }
 
 
-fetch('https://httpbin.org/get')
+fetch('http://localhost:5000/api/v1/alljobs')
   .then(function(res) {
     return res.json();
   })
   .then(function(data) {
-    createCard();
+    console.log(data)
+    for(var key in data.data){
+      createCard(data.data[key]);
+    }
   });
