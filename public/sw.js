@@ -1,4 +1,5 @@
 importScripts("/src/js/idb.js");
+importScripts("/src/js/utility.js");
 var CACHE_STATIC_NAME = "static-v18";
 var CACHE_DYNAMIC_NAME = "dynamic";
 var CACHE_USER_ENTERED_NAME = "entered-user";
@@ -15,11 +16,7 @@ var STATIC_FILES = [
   "https://fonts.googleapis.com/css?family=Roboto:400,700",
   "https://fonts.googleapis.com/icon?family=Material+Icons",
 ];
-var dbPromise = idb.open("posts-store", 1, function (db) {
-  if (!db.objectStoreNames.contains("posts")) {
-    db.createObjectStore("posts", { keyPath: '_id' });
-  }
-});
+
 self.addEventListener("install", function (event) {
   console.log("[service workwer] is installing... ", event);
   event.waitUntil(
@@ -79,12 +76,7 @@ self.addEventListener("fetch", function (event) {
         var cloneResponse = response.clone();
         cloneResponse.json().then(function (data) {
           for (var key in data.data) {
-            dbPromise.then(function (db) {
-              var tx = db.transaction("posts", "readwrite");
-              var store = tx.objectStore("posts");
-              store.put(data.data[key]);
-              return tx.complete;
-            });
+            writeData('posts' , data.data[key])
           }
         });
         return response;

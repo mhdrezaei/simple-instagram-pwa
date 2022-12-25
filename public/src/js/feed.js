@@ -2,6 +2,7 @@ var shareImageButton = document.querySelector('#share-image-button');
 var createPostArea = document.querySelector('#create-post');
 var closeCreatePostModalButton = document.querySelector('#close-create-post-modal-btn');
 var sharedMomentsArea = document.querySelector('#shared-moments');
+
 function openCreatePostModal() {
   createPostArea.style.display = 'block';
   if(eventPrompt){
@@ -65,14 +66,42 @@ function createCard(data) {
   sharedMomentsArea.appendChild(cardWrapper);
 }
 
+// function clearCard(){
+//     while(sharedMomentsArea.hasChildNodes()){
+//     sharedMomentsArea.removeChild(sharedMomentsArea.lastChild)
+//   }
+// }
 
-fetch('http://localhost:5000/api/v1/alljobs')
+function updateUI(data){
+  // clearCard();  
+  for(var i = 0; i > data.length ; i++){
+    console.log(data[i])
+    createCard(data[i])
+  }
+}
+
+var url = 'http://localhost:5000/api/v1/alljobs';
+var networkReceived = false;
+
+fetch(url)
   .then(function(res) {
     return res.json();
   })
   .then(function(data) {
-    console.log(data)
+    networkReceived = true;
+    console.log('received from web' , data)
+    var dataArray = [];
     for(var key in data.data){
-      createCard(data.data[key]);
+      dataArray.push(data.data[key]);
     }
+    console.log(dataArray)
+    updateUI(dataArray);
   });
+  if('indexedDB' in window){
+    readAllData('posts').then(function(data){
+      if(networkReceived){
+        console.log('received from cache')
+        createCard(data)
+      }
+    })
+  }
