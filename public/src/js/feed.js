@@ -74,8 +74,7 @@ function createCard(data) {
 
 function updateUI(data){
   // clearCard();  
-  for(var i = 0; i > data.length ; i++){
-    console.log(data[i])
+  for(var i = 0; i < data.length ; i++){
     createCard(data[i])
   }
 }
@@ -94,14 +93,13 @@ fetch(url)
     for(var key in data.data){
       dataArray.push(data.data[key]);
     }
-    console.log(dataArray)
     updateUI(dataArray);
   });
   if('indexedDB' in window){
     readAllData('posts').then(function(data){
-      if(networkReceived){
-        console.log('received from cache')
-        createCard(data)
+      if(!networkReceived){
+        console.log('received from indexedDB' , data )
+        updateUI(data)
       }
     })
   }

@@ -1,6 +1,6 @@
 importScripts("/src/js/idb.js");
 importScripts("/src/js/utility.js");
-var CACHE_STATIC_NAME = "static-v18";
+var CACHE_STATIC_NAME = "static-v19";
 var CACHE_DYNAMIC_NAME = "dynamic";
 var CACHE_USER_ENTERED_NAME = "entered-user";
 var STATIC_FILES = [
@@ -9,6 +9,7 @@ var STATIC_FILES = [
   "/offline.html",
   "/src/js/app.js",
   "/src/js/idb.js",
+  "/src/js/utility.js",
   "/src/js/feed.js",
   "/src/js/material.min.js",
   "/src/css/app.css",
